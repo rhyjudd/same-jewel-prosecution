@@ -1,10 +1,21 @@
 //REQUIRE THE NECESSARY DISCORD.JS CLASSESS
-
-const { Client, Intents } = require('discord.js');
+const fs = require('fs');
+const { Client, Collection, Intents } = require('discord.js');
 const { token } = process.env.DISCORD_TOKEN;
 
 //CREATE A NEW CLIENT INSTANCE
 const client = new Client ({ intents: [Intents.FLAGS.GUILDS]});
+
+//NEW COMMAND COLLECTION
+client.commands = new Collection();
+const commandFiles = fs.readdirSync('./commands').filter(file =>file.endsWith('.js'));
+
+for (const file of commandFiles){
+  const command = require(`./commands/${file}`);
+  //SET A NEW ITEM IN THE COLLECTION
+  //WITH THE KEY AS THE COMMAND NAME AND THE VALUE AS THE EXPORTED MODULE
+  client.commands.set(command.data.name, command);
+}
 
 //WHEN THE CLIENT IS READY, RUN THIS CODE(ONLY ONCE)
 client.once('ready', ()=>{
