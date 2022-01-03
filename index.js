@@ -6,6 +6,7 @@ const { token } = process.env.DISCORD_TOKEN;
 //CREATE A NEW CLIENT INSTANCE
 const client = new Client ({ intents: [Intents.FLAGS.GUILDS]});
 
+
 //NEW COMMAND COLLECTION
 client.commands = new Collection();
 const commandFiles = fs.readdirSync('./commands').filter(file =>file.endsWith('.js'));
@@ -17,12 +18,31 @@ for (const file of commandFiles){
   client.commands.set(command.data.name, command);
 }
 
+
+//DYNAMICALLY COLLECTING ALL AVAILABLE EVENT FILES
+const eventFiles = fs.readdirSync('./events').filter(file => file.endsWith('.js'));
+
+for (const file of eventFiles){
+  const event = require(`./events/${file}`);
+  
+  if(event.once){
+    client.once(event.name, (...args) =>event.execute(...args));
+  } else {
+    client.on(event.name, (...args) =>event.execute(...args));
+  }
+}
+
+
 //WHEN THE CLIENT IS READY, RUN THIS CODE(ONLY ONCE)
-client.once('ready', ()=>{
-  console.log('Ready!');
+/*
+client.once('ready', c =>{
+  console.log(`Ready! Logged in as ${c.user.tag}`);
 });
+*/
 
 client.on('interactionCreate', async interaction =>{
+  //console.log(`${interaction.user.tag} in #${interaction.channel.name} triggered an interaction`);
+  
   if (!interaction.isCommand()) return;
   
   const command = client.commands.get(interaction.commandName);
